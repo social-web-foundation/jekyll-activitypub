@@ -6,21 +6,31 @@ require "json"
 require_relative "../lib/jekyll-activitypub"
 
 class TestActivityPubGenerator < Minitest::Test
-  def setup
-    @dest_dir = File.expand_path("../tmp/_site", __FILE__)
+
+  DEST_DIR = File.expand_path("../tmp/_site", __FILE__)
+
+  def self.startup
     config = {
-      "source"      => File.expand_path("fixtures", __dir__),
-      "destination" => @dest_dir
+      "source" => File.expand_path("fixtures", __dir__),
+      "destination" => DEST_DIR,
+      "url" => "https://example.com",
+      "author" => "evan",
+      "activitypub" => {
+        "output_path" => "activitypub",
+        "preferred_username" => "blogbot"
+      }
     }
 
-    @site = Jekyll::Site.new(Jekyll.configuration(config))
-    @site.reset
-    @site.read
-    @site.generate
+    site = Jekyll::Site.new(Jekyll.configuration(config))
+    site.reset
+    site.read
+    site.generate
+    site.render
+    site.write
   end
 
   def test_actor_file_generated
-    path = File.join(@dest_dir, "actor.jsonld")
+    path = File.join(DEST_DIR, "actor.jsonld")
     assert File.exist?(path), "Expected actor.jsonld to be generated"
 
     data = JSON.parse(File.read(path))
@@ -32,7 +42,7 @@ class TestActivityPubGenerator < Minitest::Test
   end
 
   def test_webfinger_file_generated
-    path = File.join(@dest_dir, ".well-known", "webfinger")
+    path = File.join(DEST_DIR, ".well-known", "webfinger")
     assert File.exist?(path), "Expected .well-known/webfinger to be generated"
 
     data = JSON.parse(File.read(path))
