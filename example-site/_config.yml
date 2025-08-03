@@ -1,2 +1,11 @@
+title: "Jekyll ActivityPub Plugin Test Site"
+description: "A demo site to test the jekyll-activitypub plugin"
+url: "http://localhost:4000"
+author: "evan"
+
 plugins:
   - jekyll-activitypub
+
+include:
+  - activitypub
+  - .well-known

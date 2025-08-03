@@ -54,3 +54,9 @@ build-iPhoneSimulator/
 
 # Used by RuboCop. Remote config files pulled in from inherit_from directive.
 # .rubocop-https?--*
+
+# example-site
+example-site/_site
+example-site/.bundle
+example-site/.jekyll-cache
+example-site/Gemfile.lock
