@@ -35,7 +35,7 @@ bundle exec jekyll build
 bundle exec jekyll serve
 ```
 
-This will build a site that runs on http://localhost:4000/
+This will build a site that runs on `http://localhost:4000/`
 
 ## Contributing
 
