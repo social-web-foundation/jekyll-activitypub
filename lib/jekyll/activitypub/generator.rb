@@ -20,7 +20,27 @@ module Jekyll
       end
 
       def generate_webfinger(site)
-        # build and write .well-known/webfinger
+        Jekyll.logger.info LOG_TAG, "Generating .well-known/webfinger"
+
+        url = site.config["url"]
+        host = URI(url).host
+        username = preferred_username(site)
+        actor_url = "#{url}/actor.jsonld"
+
+        webfinger = {
+          "subject" => "acct:#{username}@#{host}",
+          "links" => [
+            {
+              "rel" => "self",
+              "type" => "application/activity+json",
+              "href" => actor_url
+            }
+          ]
+        }
+
+        path = File.join(site.dest, ".well-known", "webfinger")
+        FileUtils.mkdir_p(File.dirname(path))
+        File.write(path, JSON.pretty_generate(webfinger))
       end
 
       def generate_actor(site)
