@@ -70,7 +70,10 @@ module Jekyll
       end
 
       def name(site)
-        site.config["author"] || "Anonymous"
+        explicit = site.config["author"]
+        return explicit unless explicit.to_s.strip.empty?
+
+        "Anonymous"
       end
 
       def preferred_username(site)
