@@ -4,6 +4,6 @@ require "jekyll/activitypub/generator"
 
 module Jekyll
   module ActivityPub
-    # any shared code or constants
+    LOG_TAG = "ActivityPub"
   end
 end

@@ -1,5 +1,8 @@
 # lib/jekyll/activitypub/generator.rb
 require "json"
+require "uri"
+
+include Jekyll::ActivityPub
 
 module Jekyll
   module ActivityPub
@@ -8,9 +11,78 @@ module Jekyll
       priority :low
 
       def generate(site)
-        puts "ACTIVITYPUB GENERATOR RUNNING"
-        # Your code to output JSON-LD files
+        generate_webfinger(site)
+        generate_actor(site)
+        generate_inbox(site)
+        generate_articles(site)
+        generate_outbox_pages(site)
+        generate_outbox(site)
       end
+
+      def generate_webfinger(site)
+        # build and write .well-known/webfinger
+      end
+
+      def generate_actor(site)
+        Jekyll.logger.info LOG_TAG, "Generating actor.jsonld"
+        actor = build_actor(site)
+        path = File.join(site.dest, "actor.jsonld")
+        FileUtils.mkdir_p(File.dirname(path))
+        File.write(path, JSON.pretty_generate(actor))
+      end
+
+      def generate_inbox(site)
+        # write a static inbox stub with totalItems: 0
+      end
+
+      def generate_articles(site)
+        # loop over site.posts.docs and emit Article or Note objects
+      end
+
+      def generate_outbox_pages(site)
+        # generate paginated OrderedCollectionPage files
+      end
+
+      def generate_outbox(site)
+        # write outbox.jsonld pointing to pages
+      end
+
+      def build_actor(site)
+        url  = site.config["url"]
+        summary = site.config["description"]
+        outbox_path = site.config.dig("activitypub", "output_path") || "activitypub"
+
+        {
+          "@context": [
+            "https://www.w3.org/ns/activitystreams",
+            "https://purl.archive.org/miscellany/1.0",
+            "https://w3id.org/fep/b06c"
+          ],
+          "type": "Person",
+          "id": "#{url}/actor.jsonld",
+          "pollOnly": true,
+          "name": name(site),
+          "preferredUsername": preferred_username(site),
+          "summary": (summary if summary && !summary.strip.empty?),
+          "inbox": "#{url}/#{outbox_path}/inbox.jsonld",
+          "outbox": "#{url}/#{outbox_path}/outbox.jsonld"
+        }
+      end
+
+      def name(site)
+        site.config["author"] || "Anonymous"
+      end
+
+      def preferred_username(site)
+        explicit = site.config.dig("activitypub", "preferred_username")
+        return explicit unless explicit.to_s.strip.empty?
+
+        host = URI(site.config["url"]).host
+        return host if host
+
+        "anonymous"
+      end
+
     end
   end
 end

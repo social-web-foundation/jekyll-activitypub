@@ -30,7 +30,7 @@ class TestActivityPubGenerator < Minitest::Test
 
     data = JSON.parse(File.read(path))
     assert_equal "Person", data["type"]
-    assert_equal "evan", data["preferredUsername"]
+    assert_equal "example.com", data["preferredUsername"]
     assert_equal "https://example.com/activitypub/outbox.jsonld", data["outbox"]
     assert_equal "https://example.com/activitypub/inbox.jsonld", data["inbox"]
   end
