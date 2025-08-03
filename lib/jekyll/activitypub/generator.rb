@@ -8,6 +8,7 @@ module Jekyll
       priority :low
 
       def generate(site)
+        puts "ACTIVITYPUB GENERATOR RUNNING"
         # Your code to output JSON-LD files
       end
     end

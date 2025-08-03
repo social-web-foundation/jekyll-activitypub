@@ -1,0 +1,8 @@
+title: Test Site
+url: https://example.com
+author: evan
+plugins:
+  - jekyll-activitypub
+
+activitypub:
+  output_path: "activitypub"
