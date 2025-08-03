@@ -9,16 +9,10 @@ class TestActivityPubGenerator < Minitest::Test
 
   DEST_DIR = File.expand_path("../tmp/_site", __FILE__)
 
-  def self.startup
+  def setup
     config = {
       "source" => File.expand_path("fixtures", __dir__),
-      "destination" => DEST_DIR,
-      "url" => "https://example.com",
-      "author" => "evan",
-      "activitypub" => {
-        "output_path" => "activitypub",
-        "preferred_username" => "blogbot"
-      }
+      "destination" => DEST_DIR
     }
 
     site = Jekyll::Site.new(Jekyll.configuration(config))
@@ -54,6 +48,18 @@ class TestActivityPubGenerator < Minitest::Test
     assert self_link, "Expected a 'self' link in webfinger document"
     assert_equal "application/activity+json", self_link["type"]
     assert_equal "https://example.com/actor.jsonld", self_link["href"]
+  end
+
+  def test_inbox_file_generated
+    path = File.join(DEST_DIR, "activitypub", "inbox.jsonld")
+    assert File.exist?(path), "Expected inbox.jsonld to be generated"
+    data = JSON.parse(File.read(path))
+    assert_equal "OrderedCollection", data["type"]
+    assert_equal 0, data["totalItems"]
+    assert_equal [], data["orderedItems"]
+    assert_equal "https://example.com/actor.jsonld", data["inboxOf"]
+    assert_equal "https://example.com/actor.jsonld", data["attributedTo"]
+    assert_equal "as:Public", data["cc"]
   end
 
 end

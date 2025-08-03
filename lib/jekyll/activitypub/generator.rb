@@ -52,7 +52,27 @@ module Jekyll
       end
 
       def generate_inbox(site)
-        # write a static inbox stub with totalItems: 0
+        Jekyll.logger.info LOG_TAG, "Generating inbox.jsonld"
+        url  = site.config["url"]
+        output_path = site.config.dig("activitypub", "output_path") || "activitypub"
+        inbox = {
+          "@context": [
+            "https://www.w3.org/ns/activitystreams",
+            "https://purl.archive.org/miscellany/1.0",
+            "https://w3id.org/fep/5711"
+          ],
+          "id": "#{url}/#{output_path}/inbox.jsonld",
+          "type": "OrderedCollection",
+          "attributedTo": "#{url}/actor.jsonld",
+          "cc": "as:Public",
+          "inboxOf": "#{url}/actor.jsonld",
+          "summary": "Inbox of #{name(site)}",
+          "totalItems": 0,
+          "orderedItems": []
+        }
+        path = File.join(site.dest, output_path, "inbox.jsonld")
+        FileUtils.mkdir_p(File.dirname(path))
+        File.write(path, JSON.pretty_generate(inbox))
       end
 
       def generate_articles(site)
@@ -70,7 +90,7 @@ module Jekyll
       def build_actor(site)
         url  = site.config["url"]
         summary = site.config["description"]
-        outbox_path = site.config.dig("activitypub", "output_path") || "activitypub"
+        output_path = site.config.dig("activitypub", "output_path") || "activitypub"
 
         {
           "@context": [
@@ -84,8 +104,10 @@ module Jekyll
           "name": name(site),
           "preferredUsername": preferred_username(site),
           "summary": (summary if summary && !summary.strip.empty?),
-          "inbox": "#{url}/#{outbox_path}/inbox.jsonld",
-          "outbox": "#{url}/#{outbox_path}/outbox.jsonld"
+          "inbox": "#{url}/#{output_path}/inbox.jsonld",
+          "outbox": "#{url}/#{output_path}/outbox.jsonld",
+          "attributedTo": "#{url}/actor.jsonld",
+          "cc": "as:Public"
         }
       end
 
