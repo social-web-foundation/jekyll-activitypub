@@ -1,6 +1,6 @@
 # lib/jekyll/activitypub/version.rb
 module Jekyll
   module ActivityPub
-    VERSION = "0.5.0"
+    VERSION = "0.6.0"
   end
 end
