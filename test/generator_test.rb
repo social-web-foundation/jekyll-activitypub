@@ -62,4 +62,36 @@ class TestActivityPubGenerator < Minitest::Test
     assert_equal "as:Public", data["cc"]
   end
 
+  def test_post_and_activity_files_generated
+    posts_dir = File.join(DEST_DIR, "activitypub", "posts")
+    activities_dir = File.join(DEST_DIR, "activitypub", "activities")
+    fixtures_posts_dir = File.expand_path("fixtures/_posts", __dir__)
+
+    assert Dir.exist?(posts_dir), "Expected activitypub/posts directory to exist"
+    assert Dir.exist?(activities_dir), "Expected activitypub/activities directory to exist"
+
+    post_filenames = Dir[File.join(fixtures_posts_dir, "*.md")]
+
+    assert post_filenames.any?, "Expected at least one fixture post"
+
+    post_filenames.each do |path|
+      # Jekyll expects filenames like: 2025-08-01-hello-world.md
+      filename = File.basename(path, ".md")
+      slug = filename.sub(/^\d{4}-\d{2}-\d{2}-/, "") # strip date
+
+      post_path = File.join(posts_dir, "#{slug}.jsonld")
+      activity_path = File.join(activities_dir, "create-#{slug}.jsonld")
+
+      assert File.exist?(post_path), "Expected post file for #{slug} at #{post_path}"
+      assert File.exist?(activity_path), "Expected activity file for #{slug} at #{activity_path}"
+
+      post = JSON.parse(File.read(post_path))
+      activity = JSON.parse(File.read(activity_path))
+
+      assert_equal "Article", post["type"], "Expected type: Article for #{slug}"
+      assert_equal "Create", activity["type"], "Expected type: Create for #{slug}"
+      assert_equal post["id"], activity["object"]["id"], "Create.object should match Article ID for #{slug}"
+    end
+  end
+
 end

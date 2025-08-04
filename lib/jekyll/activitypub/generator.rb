@@ -15,6 +15,7 @@ module Jekyll
         generate_actor(site)
         generate_inbox(site)
         generate_articles(site)
+        generate_activities(site)
         generate_outbox_pages(site)
         generate_outbox(site)
       end
@@ -76,7 +77,66 @@ module Jekyll
       end
 
       def generate_articles(site)
-        # loop over site.posts.docs and emit Article or Note objects
+        url = site.config["url"]
+        output_path = site.config.dig("activitypub", "output_path") || "activitypub"
+        output_dir = File.join(site.dest, output_path, "posts")
+        FileUtils.mkdir_p(output_dir)
+
+        site.posts.docs.each do |post|
+          slug = post.basename_without_ext.sub(/^\d{4}-\d{2}-\d{2}-/, "")
+          filename = "#{slug}.jsonld"
+          path = File.join(output_dir, filename)
+
+          article_id = "#{url}/#{output_path}/posts/#{slug}.jsonld"
+
+          article = {
+            "@context" => "https://www.w3.org/ns/activitystreams",
+            "id" => article_id,
+            "type" => "Article",
+            "name" => post.data["title"],
+            "content" => post.output,
+            "published" => post.date.iso8601,
+            "attributedTo" => "#{url}/actor.jsonld",
+            "to" => "as:Public"
+          }
+
+          File.write(path, JSON.pretty_generate(article))
+          Jekyll.logger.info LOG_TAG, "Wrote article to #{path}"
+        end
+      end
+
+      def generate_activities(site)
+        url = site.config["url"]
+        output_path = site.config.dig("activitypub", "output_path") || "activitypub"
+        output_dir = File.join(site.dest, output_path, "activities")
+        FileUtils.mkdir_p(output_dir)
+
+        site.posts.docs.each do |post|
+          slug = post.basename_without_ext.sub(/^\d{4}-\d{2}-\d{2}-/, "")
+          filename = "create-#{slug}.jsonld"
+          path = File.join(output_dir, filename)
+
+          article_id = "#{url}/#{output_path}/posts/#{slug}.jsonld"
+          activity_id = "#{url}/#{output_path}/activities/create-#{slug}.jsonld"
+
+          activity = {
+            "@context" => "https://www.w3.org/ns/activitystreams",
+            "id" => activity_id,
+            "actor" => "#{url}/actor.jsonld",
+            "type" => "Create",
+            "summary" => "#{name(site)} created #{post.data["title"]}",
+            "published" => post.date.iso8601,
+            "object" => {
+              "id" => article_id,
+              "type" => "Article",
+              "name" => post.data["title"]
+            },
+            "to" => "as:Public"
+          }
+
+          File.write(path, JSON.pretty_generate(activity))
+          Jekyll.logger.info LOG_TAG, "Wrote activity to #{path}"
+        end
       end
 
       def generate_outbox_pages(site)
