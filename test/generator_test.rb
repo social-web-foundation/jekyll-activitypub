@@ -94,4 +94,26 @@ class TestActivityPubGenerator < Minitest::Test
     end
   end
 
+  def test_outbox_files_generated
+    outbox_file = File.join(DEST_DIR, "activitypub", "outbox.jsonld")
+
+    assert File.exist?(outbox_file), "Expected top-level outbox.jsonld"
+
+    outbox = JSON.parse(File.read(outbox_file))
+    assert_equal "OrderedCollection", outbox["type"], "Expected outbox to be OrderedCollection"
+
+    first_page_url = outbox["first"]
+    assert first_page_url, "Expected 'first' page in outbox"
+
+    first_page_path = first_page_url.sub("https://example.com/", DEST_DIR + "/")
+
+    assert File.exist?(first_page_path), "Expected first outbox page file at #{first_page_path}"
+
+    first_page = JSON.parse(File.read(first_page_path))
+    assert_equal "OrderedCollectionPage", first_page["type"], "Expected page type to be OrderedCollectionPage"
+    assert first_page["orderedItems"].is_a?(Array), "Expected orderedItems in page"
+
+    first_item = first_page["orderedItems"].first
+    assert first_item["id"].include?("/activitypub/activities/"), "Expected item to reference an activity"
+  end
 end
